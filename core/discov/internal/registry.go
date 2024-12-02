@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -223,7 +224,6 @@ func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
 
 func (c *cluster) load(cli EtcdClient, key string) int64 {
 	var resp *clientv3.GetResponse
-	var failCount int64
 	for {
 		var err error
 		ctx, cancel := context.WithTimeout(c.context(cli), RequestTimeout)
@@ -237,12 +237,9 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 		if err == nil {
 			break
 		}
-		logx.Errorf("%s, key is %s", err.Error(), key)
-		failCount++
-		if failCount >= 3 {
-			logx.Must(errors.New("failed to load data from etcd"))
-		}
-		time.Sleep(coolDownInterval)
+		logx.Errorf("%s, key is %s, stack:%s\n", err.Error(), key, debug.Stack())
+		os.Exit(1)
+		// time.Sleep(coolDownInterval)
 	}
 
 	var kvs []KV
