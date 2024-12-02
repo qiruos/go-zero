@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -238,8 +238,8 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 			break
 		}
 		logx.Errorf("%s, key is %s, stack:%s\n", err.Error(), key, debug.Stack())
-		os.Exit(1)
-		// time.Sleep(coolDownInterval)
+		time.Sleep(coolDownInterval)
+		logx.Must(err)
 	}
 
 	var kvs []KV
