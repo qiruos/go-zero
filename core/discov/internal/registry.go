@@ -223,6 +223,7 @@ func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
 
 func (c *cluster) load(cli EtcdClient, key string) int64 {
 	var resp *clientv3.GetResponse
+	var failCount int64
 	for {
 		var err error
 		ctx, cancel := context.WithTimeout(c.context(cli), RequestTimeout)
@@ -236,8 +237,11 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 		if err == nil {
 			break
 		}
-
 		logx.Errorf("%s, key is %s", err.Error(), key)
+		failCount++
+		if failCount >= 3 {
+			logx.Must(errors.New("failed to load data from etcd"))
+		}
 		time.Sleep(coolDownInterval)
 	}
 
@@ -250,6 +254,7 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 	}
 
 	c.handleChanges(key, kvs)
+	logx.Info("etcd Revision:", resp.Header.Revision)
 
 	return resp.Header.Revision
 }
@@ -274,6 +279,7 @@ func (c *cluster) monitor(key string, l UpdateListener, exactMatch bool) error {
 }
 
 func (c *cluster) newClient() (EtcdClient, error) {
+	logx.Infof("new etcd client: %v", c.endpoints)
 	cli, err := NewClient(c.endpoints)
 	if err != nil {
 		return nil, err
