@@ -61,6 +61,9 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
+	if c.KeepaliveTime <= 0 {
+		c.KeepaliveTime = 3 * 24 * time.Hour
+	}
 	if c.KeepaliveTime > 0 {
 		opts = append(opts, WithDialOption(grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time: c.KeepaliveTime,
