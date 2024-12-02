@@ -27,6 +27,7 @@ type (
 // key is the key to subscribe.
 // opts are used to customize the Subscriber.
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
+	logx.Debugf("NewSubscriber: %v, key: %v, opts:%v", endpoints, key, opts)
 	sub := &Subscriber{
 		endpoints: endpoints,
 	}
