@@ -306,11 +306,16 @@ func (c *cluster) reload(cli EtcdClient) {
 }
 
 func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
+	i := 0
 	for {
 		err := c.watchStream(cli, key, rev)
 		if err == nil {
 			return
 		}
+		if i > 10 {
+			return
+		}
+		i++
 
 		if rev != 0 && errors.Is(err, rpctypes.ErrCompacted) {
 			logx.Errorf("etcd watch stream has been compacted, try to reload, rev %d", rev)
