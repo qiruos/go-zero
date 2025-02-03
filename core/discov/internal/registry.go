@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
@@ -350,7 +351,7 @@ func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) error {
 				return errClosed
 			}
 			if wresp.Canceled {
-				return fmt.Errorf("etcd monitor chan has been canceled, error: %w", wresp.Err())
+				return fmt.Errorf("etcd monitor chan has been canceled, error: %w, stack:%s", wresp.Err(), string(debug.Stack()))
 			}
 			if wresp.Err() != nil {
 				return fmt.Errorf("etcd monitor chan error: %w", wresp.Err())
